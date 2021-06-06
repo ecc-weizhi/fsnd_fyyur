@@ -3,6 +3,7 @@
 # ----------------------------------------------------------------------------#
 
 import logging
+import enum
 from logging import Formatter, FileHandler
 
 import babel
@@ -30,6 +31,12 @@ migrate = Migrate(app, db)
 # ----------------------------------------------------------------------------#
 # Models.
 # ----------------------------------------------------------------------------#
+show = db.Table('shows',
+    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id'), primary_key=True),
+    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
+    db.Column('start_time', db.DateTime),
+)
+
 
 class Venue(db.Model):
     __tablename__ = 'venues'
@@ -39,11 +46,19 @@ class Venue(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    phone = db.Column(db.String(120), nullable=True)
+    genres = db.Column(db.ARRAY(db.String))
+    facebook_link = db.Column(db.String(120), nullable=True)
+    image_link = db.Column(db.String(500), nullable=True)
+    website_link = db.Column(db.String(500), nullable=True)
+    seeking_description = db.Column(db.String(500), nullable=True)
+    show_list = db.relationship('Artist',
+        secondary=show,
+        collection_class=list
+    )
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    def __repr__(self):
+        return f"<Venue id:{self.id}, name:{self.name}, genres:{self.genres}, show_list:{self.show_list}>"
 
 
 class Artist(db.Model):
@@ -53,15 +68,16 @@ class Artist(db.Model):
     name = db.Column(db.String)
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    phone = db.Column(db.String(120), nullable=True)
+    genres = db.Column(db.ARRAY(db.String))
+    facebook_link = db.Column(db.String(120), nullable=True)
+    image_link = db.Column(db.String(500), nullable=True)
+    website_link = db.Column(db.String(500), nullable=True)
+    seeking_description = db.Column(db.String(500), nullable=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    def __repr__(self):
+        return f"<Artist id:{self.id}, name:{self.name}, genres:{self.genres}>"
 
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 # ----------------------------------------------------------------------------#
 # Filters.
