@@ -3,17 +3,17 @@
 # ----------------------------------------------------------------------------#
 
 import logging
-import enum
 from logging import Formatter, FileHandler
 
 import babel
 import dateutil.parser
 from flask import Flask, render_template, request, flash, redirect, url_for
-from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_moment import Moment
 
 from forms import *
+from models import Venue
+from models import db
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -22,61 +22,8 @@ from forms import *
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
-db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
-
-
-# TODO: connect to a local postgresql database
-
-# ----------------------------------------------------------------------------#
-# Models.
-# ----------------------------------------------------------------------------#
-show = db.Table('shows',
-    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id'), primary_key=True),
-    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
-    db.Column('start_time', db.DateTime),
-)
-
-
-class Venue(db.Model):
-    __tablename__ = 'venues'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120), nullable=True)
-    genres = db.Column(db.ARRAY(db.String))
-    facebook_link = db.Column(db.String(120), nullable=True)
-    image_link = db.Column(db.String(500), nullable=True)
-    website_link = db.Column(db.String(500), nullable=True)
-    seeking_description = db.Column(db.String(500), nullable=True)
-    show_list = db.relationship('Artist',
-        secondary=show,
-        collection_class=list
-    )
-
-    def __repr__(self):
-        return f"<Venue id:{self.id}, name:{self.name}, genres:{self.genres}, show_list:{self.show_list}>"
-
-
-class Artist(db.Model):
-    __tablename__ = 'artists'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120), nullable=True)
-    genres = db.Column(db.ARRAY(db.String))
-    facebook_link = db.Column(db.String(120), nullable=True)
-    image_link = db.Column(db.String(500), nullable=True)
-    website_link = db.Column(db.String(500), nullable=True)
-    seeking_description = db.Column(db.String(500), nullable=True)
-
-    def __repr__(self):
-        return f"<Artist id:{self.id}, name:{self.name}, genres:{self.genres}>"
 
 
 # ----------------------------------------------------------------------------#
