@@ -1,18 +1,32 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import ForeignKey
 
 db = SQLAlchemy()
-
-show = db.Table('shows',
-    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id'), primary_key=True),
-    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
-    db.Column('start_time', db.DateTime),
-)
 
 
 def shorten(text):
     if text and len(text) > 5:
         return text[:5] + "..."
     return text
+
+
+class VenueArtistShow(db.Model):
+    __tablename__ = 'artist_and_venue_shows'
+
+    id = db.Column(db.Integer, primary_key=True)
+    venue_id = db.Column(db.Integer, ForeignKey('venues.id'), nullable=False)
+    artist_id = db.Column(db.Integer, ForeignKey('artists.id'), nullable=False)
+    start_time = db.Column(db.DateTime)
+    venue = db.relationship('Venue', backref=db.backref('show_list'))
+    artist = db.relationship('Artist', backref=db.backref('show_list'))
+
+    def __repr__(self):
+        return f"<VenueArtistShow id:{self.id}, " \
+               f"artist_id:{self.artist_id}, " \
+               f"venue_id:{self.venue_id}, " \
+               f"start_time:{self.start_time}, " \
+               f"venue:{self.venue}, " \
+               f"artist:{self.artist}>"
 
 
 class Venue(db.Model):
@@ -30,10 +44,6 @@ class Venue(db.Model):
     website_link = db.Column(db.String(500), nullable=True)
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500), nullable=True)
-    show_list = db.relationship('Artist',
-        secondary=show,
-        collection_class=list
-    )
 
     def __repr__(self):
         return f"<Venue id:{self.id}, " \
