@@ -63,7 +63,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120), nullable=True)
     image_link = db.Column(db.String(500), nullable=True)
     website_link = db.Column(db.String(500), nullable=True)
-    seeking_talent = db.Column(db.Boolean)
+    seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
@@ -76,5 +76,5 @@ class Artist(db.Model):
                f"facebook_link:{shorten(self.facebook_link)}, " \
                f"image_link:{shorten(self.image_link)}, " \
                f"website_link:{shorten(self.website_link)}, " \
-               f"seeking_talent:{self.seeking_talent}, " \
+               f"seeking_venue:{self.seeking_venue}, " \
                f"seeking_description:{shorten(self.seeking_description)}>"

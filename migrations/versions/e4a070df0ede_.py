@@ -1,15 +1,15 @@
 """empty message
 
-Revision ID: 5b464d5e3a6a
+Revision ID: e4a070df0ede
 Revises: c2bcd2d1a498
-Create Date: 2021-06-06 21:52:33.644742
+Create Date: 2021-06-06 23:32:16.248064
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '5b464d5e3a6a'
+revision = 'e4a070df0ede'
 down_revision = 'c2bcd2d1a498'
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('artist_id', 'venue_id')
     )
     op.add_column('artists', sa.Column('website_link', sa.String(length=500), nullable=True))
-    op.add_column('artists', sa.Column('seeking_talent', sa.Boolean(), nullable=True))
+    op.add_column('artists', sa.Column('seeking_venue', sa.Boolean(), nullable=True))
     op.add_column('artists', sa.Column('seeking_description', sa.String(length=500), nullable=True))
     op.add_column('venues', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     op.add_column('venues', sa.Column('website_link', sa.String(length=500), nullable=True))
@@ -42,7 +42,7 @@ def downgrade():
     op.drop_column('venues', 'website_link')
     op.drop_column('venues', 'genres')
     op.drop_column('artists', 'seeking_description')
-    op.drop_column('artists', 'seeking_talent')
+    op.drop_column('artists', 'seeking_venue')
     op.drop_column('artists', 'website_link')
     op.drop_table('shows')
     # ### end Alembic commands ###
