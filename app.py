@@ -12,7 +12,7 @@ from flask_migrate import Migrate
 from flask_moment import Moment
 
 from forms import *
-from models import Venue
+from models import Venue, Artist
 from models import db
 
 # ----------------------------------------------------------------------------#
@@ -199,7 +199,6 @@ def create_venue_form():
 def create_venue_submission():
     form = VenueForm()
 
-    has_error = False
     name = None
     try:
         name = form.name.data
@@ -221,13 +220,10 @@ def create_venue_submission():
         # on successful db insert, flash success
         flash('Venue ' + venue.name + ' was successfully listed!')
     except:
-        has_error = True
+        flash(f"An error occurred. Venue{f' {name} ' if name else ' '}could not be listed.")
         db.session.rollback()
     finally:
         db.session.close()
-
-    if has_error:
-        flash(f"An error occurred. Venue{f' {name} ' if name else ' '}could not be listed.")
 
     return render_template('pages/home.html')
 
@@ -428,13 +424,32 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    form = ArtistForm()
 
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+    name = None
+    try:
+        name = form.name.data
+        artist = Artist(
+            name=name,
+            city=form.city.data,
+            state=form.state.data,
+            phone=form.phone.data,
+            genres=form.genres.data,
+            facebook_link=form.facebook_link.data,
+            image_link=form.image_link.data,
+            website_link=form.website_link.data,
+            seeking_venue=form.seeking_venue.data,
+            seeking_description=form.seeking_description.data,
+        )
+        db.session.add(artist)
+        db.session.commit()
+        flash('Artist ' + name + ' was successfully listed!')
+    except:
+        flash(f"An error occurred. Artist{f' {name} ' if name else ' '}could not be listed.")
+        db.session.rollback()
+    finally:
+        db.session.close()
+
     return render_template('pages/home.html')
 
 
