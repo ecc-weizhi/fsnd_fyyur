@@ -242,7 +242,11 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-    data = Artist.query.all()
+    data = list(map(lambda element: {
+        "id": element[0],
+        "name": element[1]
+    }, db.session.query(Artist.id, Artist.name).all()))
+
     return render_template('pages/artists.html', artists=data)
 
 
