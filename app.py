@@ -56,29 +56,30 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+    now = datetime.utcnow()
+    city_state_list = db.session.query(Venue.city, Venue.state) \
+        .group_by(Venue.city, Venue.state) \
+        .all()
+
+    data = [
+        {
+            "city": city_state[0],
+            "state": city_state[1],
+            "venues": db.session.query(Venue.id, Venue.name)
+                .filter(Venue.city == city_state[0], Venue.state == city_state[1])
+                .all()
+        } for city_state in city_state_list
+    ]
+    for city_state_group in data:
+        city_state_group["venues"] = [
+            {
+                "id": venue_id_name[0],
+                "name": venue_id_name[1],
+                "num_upcoming_shows": db.session.query(VenueArtistShow.id)
+                    .filter(VenueArtistShow.start_time > now, VenueArtistShow.venue_id == venue_id_name[0])
+                    .count()
+            } for venue_id_name in city_state_group["venues"]
+        ]
     return render_template('pages/venues.html', areas=data);
 
 
@@ -96,9 +97,9 @@ def search_venues():
         }]
     }
     return render_template('pages/search_venues.html',
-        results=response,
-        search_term=request.form.get('search_term', '')
-    )
+                           results=response,
+                           search_term=request.form.get('search_term', '')
+                           )
 
 
 @app.route('/venues/<int:venue_id>')
@@ -231,9 +232,9 @@ def search_artists():
         }]
     }
     return render_template('pages/search_artists.html',
-        results=response,
-        search_term=request.form.get('search_term', '')
-    )
+                           results=response,
+                           search_term=request.form.get('search_term', '')
+                           )
 
 
 @app.route('/artists/<int:artist_id>')
