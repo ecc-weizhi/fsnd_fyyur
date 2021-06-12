@@ -17,7 +17,7 @@
 					   value="Delete Venue"
 					   class="btn btn-primary btn-lg btn-block"
 					   formmethod="POST"
-					   formaction="{{ url_for('delete_venue', venue_id=venue.id) }}">
+					   formaction="{{ url_for('venues.delete_venue', venue_id=venue.id) }}">
 			</form>
 		</li>
 		{% endfor %}
