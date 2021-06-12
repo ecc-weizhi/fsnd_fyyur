@@ -10,6 +10,7 @@ import dateutil.parser
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
+from sqlalchemy import func
 
 from forms import *
 from models import Venue, Artist, VenueArtistShow
@@ -85,16 +86,20 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+    now = datetime.utcnow()
+    like_search_term = "%{}%".format(request.form.get('search_term', ''))
+    venue_list = db.session.query(Venue.id, Venue.name, func.count(VenueArtistShow.id)) \
+        .join(VenueArtistShow, VenueArtistShow.venue_id == Venue.id) \
+        .filter(VenueArtistShow.start_time > now, Venue.name.ilike(like_search_term)) \
+        .group_by(Venue.id, Venue.name) \
+        .all()
     response = {
-        "count": 1,
+        "count": len(venue_list),
         "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
+            "id": venue[0],
+            "name": venue[1],
+            "num_upcoming_shows": venue[2]
+        } for venue in venue_list]
     }
     return render_template('pages/search_venues.html',
                            results=response,
