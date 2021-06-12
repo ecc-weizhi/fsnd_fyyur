@@ -11,6 +11,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
 from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
 
 from forms import *
 from models import Venue, Artist, VenueArtistShow
@@ -81,7 +82,7 @@ def venues():
                     .count()
             } for venue_id_name in city_state_group["venues"]
         ]
-    return render_template('pages/venues.html', areas=data);
+    return render_template('pages/venues.html', areas=data)
 
 
 @app.route('/venues/search', methods=['POST'])
@@ -192,7 +193,7 @@ def create_venue_submission():
         db.session.commit()
         # on successful db insert, flash success
         flash('Venue ' + venue.name + ' was successfully listed!')
-    except:
+    except SQLAlchemyError:
         flash(f"An error occurred. Venue{f' {name} ' if name else ' '}could not be listed.")
         db.session.rollback()
     finally:
@@ -201,14 +202,16 @@ def create_venue_submission():
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>', methods=['POST'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+    try:
+        Venue.query.filter_by(id=venue_id).first_or_404().delete()
+        db.session.commit()
+        flash('The venue has been removed together with all of its shows.')
+        return render_template('pages/home.html')
+    except SQLAlchemyError:
+        flash('It was not possible to delete this Venue')
+    return redirect(url_for('venues'))
 
 
 #  Artists
@@ -335,7 +338,7 @@ def edit_artist_submission(artist_id):
         artist.seeking_venue = form.seeking_venue.data
         artist.seeking_description = form.seeking_description.data
         db.session.commit()
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
     finally:
         db.session.close()
@@ -380,7 +383,7 @@ def edit_venue_submission(venue_id):
         venue.seeking_talent = form.seeking_talent.data
         venue.seeking_description = form.seeking_description.data
         db.session.commit()
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
     finally:
         db.session.close()
@@ -419,7 +422,7 @@ def create_artist_submission():
         db.session.add(artist)
         db.session.commit()
         flash('Artist ' + name + ' was successfully listed!')
-    except:
+    except SQLAlchemyError:
         flash(f"An error occurred. Artist{f' {name} ' if name else ' '}could not be listed.")
         db.session.rollback()
     finally:
@@ -469,7 +472,7 @@ def create_show_submission():
         db.session.add(show)
         db.session.commit()
         flash('Show was successfully listed!')
-    except:
+    except SQLAlchemyError:
         flash('An error occurred. Show could not be listed.')
         db.session.rollback()
     finally:
