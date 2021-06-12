@@ -14,19 +14,18 @@ class VenueArtistShow(db.Model):
     __tablename__ = 'artist_and_venue_shows'
 
     id = db.Column(db.Integer, primary_key=True)
-    venue_id = db.Column(db.Integer, ForeignKey('venues.id'), nullable=False)
-    artist_id = db.Column(db.Integer, ForeignKey('artists.id'), nullable=False)
+    venue_id = db.Column(db.Integer, ForeignKey('venues.id', ondelete="CASCADE"))
+    artist_id = db.Column(db.Integer, ForeignKey('artists.id', ondelete="CASCADE"))
     start_time = db.Column(db.DateTime)
-    venue = db.relationship('Venue', backref=db.backref('show_list'))
-    artist = db.relationship('Artist', backref=db.backref('show_list'))
+
+    # venue = db.relationship('Venue', cascade="all, delete", backref=db.backref('show_list'))
+    # artist = db.relationship('Artist', cascade="all, delete", backref=db.backref('show_list'))
 
     def __repr__(self):
         return f"<VenueArtistShow id:{self.id}, " \
                f"artist_id:{self.artist_id}, " \
                f"venue_id:{self.venue_id}, " \
-               f"start_time:{self.start_time}, " \
-               f"venue:{self.venue}, " \
-               f"artist:{self.artist}>"
+               f"start_time:{self.start_time}>"
 
 
 class Venue(db.Model):
@@ -57,8 +56,7 @@ class Venue(db.Model):
                f"image_link:{shorten(self.image_link)}, " \
                f"website_link:{shorten(self.website_link)}, " \
                f"seeking_talent:{self.seeking_talent}, " \
-               f"seeking_description:{shorten(self.seeking_description)}," \
-               f"show_list:{self.show_list}>"
+               f"seeking_description:{shorten(self.seeking_description)}>"
 
 
 class Artist(db.Model):
@@ -87,5 +85,4 @@ class Artist(db.Model):
                f"image_link:{shorten(self.image_link)}, " \
                f"website_link:{shorten(self.website_link)}, " \
                f"seeking_venue:{self.seeking_venue}, " \
-               f"seeking_description:{shorten(self.seeking_description)}, " \
-               f"show_list:{self.show_list}>"
+               f"seeking_description:{shorten(self.seeking_description)}>"
