@@ -152,31 +152,34 @@ def create_artist_form():
 
 @artists_blueprint.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    # called upon submitting the new artist listing form
-    form = ArtistForm()
+    form = ArtistForm(request.form, meta={'csrf': False})
 
-    name = None
-    try:
-        name = form.name.data
-        artist = Artist(
-            name=name,
-            city=form.city.data,
-            state=form.state.data,
-            phone=form.phone.data,
-            genres=form.genres.data,
-            facebook_link=form.facebook_link.data,
-            image_link=form.image_link.data,
-            website_link=form.website_link.data,
-            seeking_venue=form.seeking_venue.data,
-            seeking_description=form.seeking_description.data,
-        )
-        db.session.add(artist)
-        db.session.commit()
-        flash('Artist ' + name + ' was successfully listed!')
-    except SQLAlchemyError:
-        flash(f"An error occurred. Artist{f' {name} ' if name else ' '}could not be listed.")
-        db.session.rollback()
-    finally:
-        db.session.close()
+    if form.validate_on_submit():
+        name = None
+        try:
+            name = form.name.data
+            artist = Artist(
+                name=name,
+                city=form.city.data,
+                state=form.state.data,
+                phone=form.phone.data,
+                genres=form.genres.data,
+                facebook_link=form.facebook_link.data,
+                image_link=form.image_link.data,
+                website_link=form.website_link.data,
+                seeking_venue=form.seeking_venue.data,
+                seeking_description=form.seeking_description.data,
+            )
+            db.session.add(artist)
+            db.session.commit()
+            flash('Artist ' + name + ' was successfully listed!')
+            return render_template('pages/home.html')
+        except SQLAlchemyError:
+            flash(f"An error occurred. Artist{f' {name} ' if name else ' '}could not be listed.")
+            db.session.rollback()
+        finally:
+            db.session.close()
 
-    return render_template('pages/home.html')
+    for key, value in form.errors.items():
+        flash(f"{key}: {value}\n")
+    return render_template('forms/new_artist.html', form=form)
