@@ -192,24 +192,31 @@ def edit_venue(venue_id):
 
 @venues_blueprint.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    form = VenueForm()
+    form = VenueForm(request.form, meta={'csrf': False})
+    venue = Venue.query.get(venue_id)
 
-    try:
-        venue = Venue.query.get(venue_id)
-        venue.name = form.name.data
-        venue.city = form.city.data
-        venue.state = form.state.data
-        venue.address = form.address.data
-        venue.phone = form.phone.data
-        venue.genres = form.genres.data
-        venue.facebook_link = form.facebook_link.data
-        venue.image_link = form.image_link.data
-        venue.website_link = form.website_link.data
-        venue.seeking_talent = form.seeking_talent.data
-        venue.seeking_description = form.seeking_description.data
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-    finally:
-        db.session.close()
-    return redirect(url_for('venues.show_venue', venue_id=venue_id))
+    if form.validate_on_submit():
+        try:
+            venue = Venue.query.get(venue_id)
+            venue.name = form.name.data
+            venue.city = form.city.data
+            venue.state = form.state.data
+            venue.address = form.address.data
+            venue.phone = form.phone.data
+            venue.genres = form.genres.data
+            venue.facebook_link = form.facebook_link.data
+            venue.image_link = form.image_link.data
+            venue.website_link = form.website_link.data
+            venue.seeking_talent = form.seeking_talent.data
+            venue.seeking_description = form.seeking_description.data
+            db.session.commit()
+            flash('Venue ' + venue.name + ' was successfully edited!')
+            return redirect(url_for('venues.show_venue', venue_id=venue_id))
+        except SQLAlchemyError:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+    for key, value in form.errors.items():
+        flash(f"{key}: {value}\n")
+    return render_template('forms/edit_venue.html', form=form, venue=venue)
