@@ -116,26 +116,32 @@ def edit_artist(artist_id):
 
 @artists_blueprint.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    form = ArtistForm()
+    form = ArtistForm(request.form, meta={'csrf': False})
+    artist = Artist.query.get(artist_id)
 
-    try:
-        artist = Artist.query.get(artist_id)
-        artist.name = form.name.data
-        artist.city = form.city.data
-        artist.state = form.state.data
-        artist.phone = form.phone.data
-        artist.genres = form.genres.data
-        artist.facebook_link = form.facebook_link.data
-        artist.image_link = form.image_link.data
-        artist.website_link = form.website_link.data
-        artist.seeking_venue = form.seeking_venue.data
-        artist.seeking_description = form.seeking_description.data
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-    finally:
-        db.session.close()
-    return redirect(url_for('artists.show_artist', artist_id=artist_id))
+    if form.validate_on_submit():
+        try:
+            artist.name = form.name.data
+            artist.city = form.city.data
+            artist.state = form.state.data
+            artist.phone = form.phone.data
+            artist.genres = form.genres.data
+            artist.facebook_link = form.facebook_link.data
+            artist.image_link = form.image_link.data
+            artist.website_link = form.website_link.data
+            artist.seeking_venue = form.seeking_venue.data
+            artist.seeking_description = form.seeking_description.data
+            db.session.commit()
+            flash('Artist ' + artist.name + ' was successfully edited!')
+            return redirect(url_for('artists.show_artist', artist_id=artist_id))
+        except SQLAlchemyError:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+    for key, value in form.errors.items():
+        flash(f"{key}: {value}\n")
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @artists_blueprint.route('/artists/create', methods=['GET'])
